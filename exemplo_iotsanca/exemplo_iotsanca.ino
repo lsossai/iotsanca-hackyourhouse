@@ -1,5 +1,3 @@
-// Exemplo desenvolvido para grupo de IoT Sanca no projeto de Automação Residencial
-
 #include <ESP8266WiFi.h>                                                  // Biblioteca utilizada para funções de WiFi
 
 char ssid[] = "Asilo 2.4 GHz";                                            // Insira o SSID do seu WiFi
@@ -13,8 +11,6 @@ int sensorPin = A0;                                                       // Pin
 String value_string = "";                                                 // String de armazenamento do dado que vai ser enviado pra plataforma Tago
 unsigned long lastConnectionTime = 0;                                     // Última vez que conectou com o servidor em milisegundos
 const unsigned long postingInterval = 2L * 1000L;                         // Delay entre updates, em milisegundos
-
-****************************************************************************
 
 void setup() {
   Serial.begin(115200);                                                   // Inicia a comunicação serial para acompanhar status da placa
@@ -33,12 +29,12 @@ void loop() {
 
 void httpRequest() {
   client.stop();                                                          // Fecha qualquer conexão antes de fazer um novo request
-  Serial.println("\Iniciando conexão com o servidor...");
+  Serial.println("\Iniciando conexão com o servidor da tago...");
   String PostData = String("{\"variable\":\"temperature\", \"value\":") +
                     String(value_string) + String(",\"unit\":\"C\"}");    // String no formato JSON com o valor de temperatura que vai ser postado no servidor da tago
   String Dev_token = String("Device-Token: ") + String(Device_Token);
   if (client.connect(server, serverPort)) {                               // Inicia conexão com servidor da tago
-    Serial.println("Conectado ao servidor");
+    Serial.println("Conectado!");
     client.println("POST /data? HTTP/1.1");                               // Inicio da montagem do pacote HTTP
     client.println("Host: api.tago.io");
     client.println("_ssl: false");
@@ -48,6 +44,8 @@ void httpRequest() {
     client.println(PostData.length());
     client.println();
     client.println(PostData);                                             // Fim da montagem do pacote HTTP
+    Serial.println("Pacote de dados enviado com sucesso com temperatura: ");
+    Serial.println(value_string);
     lastConnectionTime = millis();
   }
   else {
@@ -67,5 +65,4 @@ void SetupWifi() {
   }
   Serial.println("");
   Serial.println("WiFi conectado");
-  Serial.println("Endereço de IP: ");
 }
