@@ -18,6 +18,8 @@ Em seguida clique em OK e retorne à tela principal do Arduino.
 
 Agora clique em **Ferramentas -> Placa -> Gerenciador de Placas** e encontre o **esp8266 by ESP8266 Community** e instale.
 
+Antes de programar é necessário selecionar a placa correta, para isso vá até o menu **Ferramentas -> Placas** e selecione a placa **NodeMCU 1.0 (ESP-12E Module)**
+
 Pronto, a IDE do Arduino já está configurada para programar o ESP8266
 
 
