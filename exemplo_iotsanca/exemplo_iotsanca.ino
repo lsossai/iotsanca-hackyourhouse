@@ -1,116 +1,71 @@
+// Exemplo desenvolvido para grupo de IoT Sanca no projeto de Automação Residencial
 
-#include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>                                                  // Biblioteca utilizada para funções de WiFi
 
-char ssid[] = "Asilo 2.4 GHz";      //  your network SSID (name)
-char pass[] = "reppolter99";   // your network password
-String Device_Token = "db05824d-0dfc-47d6-baeb-8a499b36c3d1";
+char ssid[] = "Asilo 2.4 GHz";                                            // Insira o SSID do seu WiFi
+char pass[] = "reppolter99";                                              // Insira a pass do seu WiFi
+String Device_Token = "db05824d-0dfc-47d6-baeb-8a499b36c3d1";             // Insira o token de seu device na plataforma Tago
+char server[] = "api.tago.io";                                            // Endereço do servidor da Tago
+int serverPort = 80;                                                      // Porta do servidor da tago
+int status = WL_IDLE_STATUS;                                              // Variável pra guardar o status do WiFi
+WiFiClient client;                                                        // Cliente WiFi utilizado para fazer comunicação com o servidor da tago via http request
+int sensorPin = A0;                                                       // Pino analógico para leitura do sensor LM35 ou potênciometro
+String value_string = "";                                                 // String de armazenamento do dado que vai ser enviado pra plataforma Tago
+unsigned long lastConnectionTime = 0;                                     // Última vez que conectou com o servidor em milisegundos
+const unsigned long postingInterval = 2L * 1000L;                         // Delay entre updates, em milisegundos
 
-int sensorPin = A0;       // select the input pin for the analog input
-int rawvoltage = 0;       // variable to store the value coming from the sensor
-float sensorValue = 0;
-String value_string = "";
-
-int status = WL_IDLE_STATUS;
-
-// Initialize the Wifi client library
-WiFiClient client;
-
-// server address:
-char server[] = "api.tago.io";
-
-unsigned long lastConnectionTime = 0;            // last time you connected to the server, in milliseconds
-const unsigned long postingInterval = 2L * 1000L; // delay between updates, in milliseconds
+****************************************************************************
 
 void setup() {
-  //Initialize serial and wait for port to open:
-  Serial.begin(115200);
-  while (!Serial) {
-    ;                     // wait for serial port to connect. Needed for native USB port only
-  }
-  SetupWifi();
+  Serial.begin(115200);                                                   // Inicia a comunicação serial para acompanhar status da placa
+  SetupWifi();                                                            // Chama a rotina de setup do Wifi
 }
 
 void loop() {
-  // if there's incoming data from the net connection.
-  // send it out the serial port.  This is for debugging
-  // purposes only:
-  while (client.available()) {
-    char c = client.read();
-    Serial.write(c);
+  if (millis() - lastConnectionTime > postingInterval) {                  // Função para realizar update a cada 2 segundos
+    int analogValue = analogRead(sensorPin);                              // Realiza a leitura analógica do pino A0
+    float millivolts = (analogValue / 1024.0) * 3300;                     // Transforma a leitura analógica em milivolts
+    float celsius = millivolts / 10;                                      // Transforma a tensão encontrada em graus celsius seguindo a lógica do LM35
+    value_string = String(celsius);                                       // Armazena o valor de temperatura na variável global
+    httpRequest();                                                        // Chama a rotina httpRequest
   }
-
-  // if TWO seconds have passed since your last connection,
-  // then connect again and send data:
-
-  if (millis() - lastConnectionTime > postingInterval) {
-    // read the value from the sensor:
-    //rawvoltage = analogRead(sensorPin);
-    rawvoltage = 500;
-    // converting that reading to voltage, for 3.3v voltage
-    float voltage = rawvoltage * 3.3;
-    voltage /= 1024.0;
-    // converting to Celsius
-    float temperatureC = (voltage - 0.5) * 100 ;  //converting from 10 mv per degree wit 500 mV offset
-    //to degrees ((voltage - 500mV) times 100)
-
-    int i = (int) temperatureC;                   //convert data format from float to int
-    value_string = String(i);                     //end of conversion, to finally get it in the String format(Celsius)
-    Serial.println(value_string);
-
-    // then, send data to Tago
-    httpRequest();
-  }
-
 }
 
 void httpRequest() {
-  // close any connection before send a new request.
-  // This will free the socket on the WiFi shield
-  client.stop();
-
-  Serial.println("\nStarting connection to server...");
-  // if you get a connection, report back via serial:
-  String PostData = String("{\"variable\":\"teste\", \"value\":") + String(value_string) + String(",\"unit\":\"C\"}");
+  client.stop();                                                          // Fecha qualquer conexão antes de fazer um novo request
+  Serial.println("\Iniciando conexão com o servidor...");
+  String PostData = String("{\"variable\":\"temperature\", \"value\":") +
+                    String(value_string) + String(",\"unit\":\"C\"}");    // String no formato JSON com o valor de temperatura que vai ser postado no servidor da tago
   String Dev_token = String("Device-Token: ") + String(Device_Token);
-  if (client.connect(server, 80)) {                     // we will use non-secured connnection (HTTP) for tests
-    Serial.println("connected to server");
-    // Make a HTTP request:
-    client.println("POST /data? HTTP/1.1");
+  if (client.connect(server, serverPort)) {                               // Inicia conexão com servidor da tago
+    Serial.println("Conectado ao servidor");
+    client.println("POST /data? HTTP/1.1");                               // Inicio da montagem do pacote HTTP
     client.println("Host: api.tago.io");
-    client.println("_ssl: false");                        // for non-secured connection, use this option "_ssl: false"
+    client.println("_ssl: false");
     client.println(Dev_token);
     client.println("Content-Type: application/json");
     client.print("Content-Length: ");
     client.println(PostData.length());
     client.println();
-    client.println(PostData);
-    // note the time that the connection was made:
+    client.println(PostData);                                             // Fim da montagem do pacote HTTP
     lastConnectionTime = millis();
   }
   else {
-    // if you couldn't make a connection:
-    Serial.println("connection failed");
+    Serial.println("Conexão falhou");
   }
 }
 
 void SetupWifi() {
-
   Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
+  Serial.print("Conectando na rede ");
   Serial.println(ssid);
-  /* Explicitly set the ESP8266 to be a WiFi-client, otherwise, it by default,
-     would try to act as both a client and an access-point and could cause
-     network-issues with your other WiFi-devices on your WiFi-network. */
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, pass);
-
+  WiFi.mode(WIFI_STA);                                                    // Seta o modo de funcionamento do WiFi
+  WiFi.begin(ssid, pass);                                                 // Conecta no WiFi
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-
   Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
+  Serial.println("WiFi conectado");
+  Serial.println("Endereço de IP: ");
 }
