@@ -1,14 +1,14 @@
 # iotsanca-hackyourhouse
 Projeto de automação residencial com um ESP8266 conectado à plataforma Tago.io desenvolvido pelo grupo IoT Sanca.
 
-### Pré requisitos
+## Pré requisitos
 
 * Arduino IDE
 * Placa de desenvolvimento ESP8266 (NodeMCU)
 * Sensor de temperatura LM35 ou um potênciometro para simular
 
 
-### Instalando
+## Instalando
 
 O primeiro passo é configurar a IDE do Arduino para o ESP8266, para isso é necessário clicar no canto superior esquerdo da IDE em **Arquivo -> Preferências**. Na tela seguinte, copie o link abaixo no campo **URLs Adicionais de Gerenciadores de Placas**:
 
