@@ -8,7 +8,7 @@ Projeto de automação residencial com um ESP8266 conectado à plataforma Tago.i
 * Sensor de temperatura LM35 ou um potênciometro para simular
 
 
-## Instalando
+## Instalação
 
 O primeiro passo é configurar a IDE do Arduino para o ESP8266, para isso é necessário clicar no canto superior esquerdo da IDE em **Arquivo -> Preferências**. Na tela seguinte, copie o link abaixo no campo **URLs Adicionais de Gerenciadores de Placas**:
 
