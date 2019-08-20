@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>                                                  // Biblioteca utilizada para funções de WiFi
 
-char ssid[] = "Asilo 2.4 GHz";                                            // Insira o SSID do seu WiFi
-char pass[] = "reppolter99";                                              // Insira a pass do seu WiFi
+char ssid[] = "seussid";                                                  // Insira o SSID do seu WiFi
+char pass[] = "suasenha";                                                 // Insira a pass do seu WiFi
 String Device_Token = "db05824d-0dfc-47d6-baeb-8a499b36c3d1";             // Insira o token de seu device na plataforma Tago
 char server[] = "api.tago.io";                                            // Endereço do servidor da Tago
 int serverPort = 80;                                                      // Porta do servidor da tago
